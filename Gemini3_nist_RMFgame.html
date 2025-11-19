@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RMF Defender: Risk Management Framework Training</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0f172a; /* Slate 900 */
+            color: #e2e8f0;
+            overflow-x: hidden;
+        }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #1e293b; }
+        ::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
+
+        /* Glassmorphism Card */
+        .glass-panel {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+
+        /* Animations */
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 5px #0ea5e9; }
+            50% { box-shadow: 0 0 20px #0ea5e9; }
+        }
+
+        .animate-slide-in {
+            animation: slideIn 0.5s ease-out forwards;
+        }
+
+        .step-active {
+            background: #0ea5e9;
+            color: white;
+            box-shadow: 0 0 15px rgba(14, 165, 233, 0.5);
+            border-color: #0ea5e9;
+        }
+
+        .step-completed {
+            background: #10b981; /* Emerald 500 */
+            color: white;
+            border-color: #10b981;
+        }
+
+        .step-pending {
+            background: #1e293b;
+            color: #64748b;
+            border-color: #334155;
+        }
+
+        /* Option Button Hover */
+        .option-btn {
+            transition: all 0.2s ease;
+        }
+        .option-btn:hover {
+            transform: translateX(5px);
+            border-color: #38bdf8;
+            background: rgba(56, 189, 248, 0.1);
+        }
+
+        .hidden { display: none; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-center p-4">
+
+    <!-- Background Decoration -->
+    <div class="fixed top-0 left-0 w-full h-full overflow-hidden -z-10 pointer-events-none">
+        <div class="absolute top-[-10%] left-[-10%] w-96 h-96 bg-blue-600 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"></div>
+        <div class="absolute top-[-10%] right-[-10%] w-96 h-96 bg-teal-600 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
+        <div class="absolute bottom-[-20%] left-[20%] w-96 h-96 bg-indigo-600 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-4000"></div>
+    </div>
+
+    <!-- Game Container -->
+    <div id="game-container" class="glass-panel w-full max-w-4xl rounded-2xl p-6 md:p-10 relative">
+        
+        <!-- Header -->
+        <header class="flex justify-between items-center mb-8 border-b border-slate-700 pb-4">
+            <div>
+                <h1 class="text-2xl md:text-3xl font-bold text-white tracking-tight">RMF <span class="text-sky-400">Defender</span></h1>
+                <p class="text-slate-400 text-sm">NIST Risk Management Framework Simulator</p>
+            </div>
+            <div class="text-right">
+                <div class="text-sm text-slate-400">Security Score</div>
+                <div id="score-display" class="text-2xl font-mono font-bold text-emerald-400">0</div>
+            </div>
+        </header>
+
+        <!-- Progress Stepper -->
+        <div class="mb-10 relative">
+            <div class="absolute top-1/2 left-0 w-full h-1 bg-slate-700 -z-10 transform -translate-y-1/2 rounded"></div>
+            <div id="steps-container" class="flex justify-between items-center">
+                <!-- Steps injected by JS -->
+            </div>
+        </div>
+
+        <!-- Main Content Area -->
+        <div id="level-content" class="animate-slide-in min-h-[300px] flex flex-col justify-between">
+            <!-- Dynamic Content -->
+        </div>
+
+        <!-- Intro Screen (Initial State) -->
+        <div id="intro-screen" class="text-center py-10">
+            <div class="bg-sky-500/10 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 ring-2 ring-sky-500/50">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-sky-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                </svg>
+            </div>
+            <h2 class="text-3xl font-bold mb-4">Welcome, Security Officer.</h2>
+            <p class="text-slate-300 mb-8 max-w-lg mx-auto leading-relaxed">
+                Your mission is to secure a new critical Government Information System. 
+                Navigate the <span class="text-sky-400 font-semibold">7 Steps of the NIST RMF</span> to achieve an Authorization to Operate (ATO).
+            </p>
+            <button onclick="game.start()" class="bg-sky-500 hover:bg-sky-600 text-white font-bold py-3 px-8 rounded-lg transition-all shadow-lg shadow-sky-500/30 transform hover:scale-105">
+                Start Mission
+            </button>
+        </div>
+
+        <!-- Result Modal (Hidden by default) -->
+        <div id="feedback-modal" class="hidden absolute inset-0 bg-slate-900/95 z-20 rounded-2xl flex flex-col items-center justify-center p-8 text-center backdrop-blur-sm">
+            <div id="feedback-icon" class="mb-4"></div>
+            <h3 id="feedback-title" class="text-2xl font-bold mb-2"></h3>
+            <p id="feedback-text" class="text-slate-300 mb-6 max-w-md"></p>
+            <button id="next-btn" class="bg-white text-slate-900 font-bold py-2 px-6 rounded hover:bg-slate-200 transition-colors">
+                Continue
+            </button>
+        </div>
+
+        <!-- Victory Screen (Hidden by default) -->
+        <div id="victory-screen" class="hidden text-center py-10 animate-slide-in">
+            <div class="text-6xl mb-4">🛡️</div>
+            <h2 class="text-4xl font-bold text-white mb-4">Authorization Granted!</h2>
+            <p class="text-lg text-emerald-400 mb-6 font-mono">ATO STATUS: APPROVED</p>
+            <p class="text-slate-300 mb-8 max-w-xl mx-auto">
+                You have successfully navigated the NIST Risk Management Framework. The system is authorized, and continuous monitoring is active.
+            </p>
+            <div class="bg-slate-800/50 p-6 rounded-xl inline-block mb-8 border border-slate-700">
+                <div class="text-slate-400 text-sm uppercase tracking-wide">Final Score</div>
+                <div id="final-score" class="text-4xl font-bold text-white">0</div>
+            </div>
+            <br>
+            <button onclick="location.reload()" class="bg-slate-700 hover:bg-slate-600 text-white font-bold py-3 px-8 rounded-lg border border-slate-600 transition-all">
+                Replay Mission
+            </button>
+        </div>
+
+    </div>
+
+    <script>
+        // Game Data: The 7 Steps of NIST RMF
+        const rmfData = [
+            {
+                stepId: 1,
+                name: "Prepare",
+                short: "Prep",
+                icon: "📋",
+                scenario: "You are initiating a new Cloud-based HR System. Before doing anything technical, what is the most critical first step according to the 'Prepare' phase?",
+                options: [
+                    { text: "Immediately install firewalls and antivirus software.", correct: false, feedback: "Installing tools happens later in Implementation. First, you need a strategy." },
+                    { text: "Identify key roles, risk management strategy, and common controls.", correct: true, feedback: "Correct! Preparation involves identifying the ISSO, AO, and defining organization-wide risk strategies." },
+                    { text: "Scan the network for vulnerabilities.", correct: false, feedback: "Scanning is an assessment activity. You aren't ready for that yet." }
+                ]
+            },
+            {
+                stepId: 2,
+                name: "Categorize",
+                short: "Cat",
+                icon: "🏷️",
+                scenario: "Preparation is done. Now you must Categorize the system. The HR data contains PII (Social Security Numbers). How do you determine the impact level?",
+                options: [
+                    { text: "Guess 'Moderate' because it sounds reasonable.", correct: false, feedback: "Never guess. Categorization must be based on analysis." },
+                    { text: "Ask the system developers what they think.", correct: false, feedback: "Developers focus on functionality, not necessarily risk impact." },
+                    { text: "Analyze the potential impact on Confidentiality, Integrity, and Availability (CIA) based on NIST SP 800-60.", correct: true, feedback: "Correct! You must map information types to impact levels (Low, Moderate, High) for C-I-A." }
+                ]
+            },
+            {
+                stepId: 3,
+                name: "Select",
+                short: "Sel",
+                icon: "✅",
+                scenario: "The system is categorized as 'Moderate'. Now you must Select controls. Where do you look, and what is your primary task?",
+                options: [
+                    { text: "Select the baseline controls from NIST SP 800-53 and tailor them to the system.", correct: true, feedback: "Correct! You start with the baseline for a 'Moderate' system and tailor (add/remove) based on specific needs." },
+                    { text: "Write your own security controls from scratch.", correct: false, feedback: "Creating custom controls from scratch is inefficient and likely non-compliant. Use the 800-53 catalog." },
+                    { text: "Select only the controls that are cheap to implement.", correct: false, feedback: "Cost is a factor, but security requirements dictate the selection, not just budget." }
+                ]
+            },
+            {
+                stepId: 4,
+                name: "Implement",
+                short: "Imp",
+                icon: "🛠️",
+                scenario: "Controls are selected. Now entering Implementation. You installed the Identity Management system. What else is required in this step?",
+                options: [
+                    { text: "Assume it works and move to the next step.", correct: false, feedback: "Never assume. Documentation is required." },
+                    { text: "Document how the controls are deployed in the System Security Plan (SSP).", correct: true, feedback: "Correct! Implementation isn't just doing the work; it's documenting the 'How' in the SSP." },
+                    { text: "Ask the Authorizing Official to sign off immediately.", correct: false, feedback: "The AO cannot sign off until the controls are assessed." }
+                ]
+            },
+            {
+                stepId: 5,
+                name: "Assess",
+                short: "Ass",
+                icon: "🔍",
+                scenario: "Implementation is complete. Now for the Assessment. Who should perform the assessment, and what is the output?",
+                options: [
+                    { text: "The System Administrator, producing a bug report.", correct: false, feedback: "The admin is too close to the system. You need independence." },
+                    { text: "An independent Control Assessor, producing a Security Assessment Report (SAR).", correct: true, feedback: "Correct! Independence is crucial to avoid conflict of interest. The SAR details the findings." },
+                    { text: "The CEO, producing a memo.", correct: false, feedback: "The CEO (unless acting as AO) does not perform the technical assessment." }
+                ]
+            },
+            {
+                stepId: 6,
+                name: "Authorize",
+                short: "Auth",
+                icon: "✍️",
+                scenario: "The SAR shows some low-level risks, but they are manageable. It's time for Authorization. Who makes the final decision?",
+                options: [
+                    { text: "The ISSO (Information System Security Officer).", correct: false, feedback: "The ISSO advises, but does not accept the risk." },
+                    { text: "The Authorizing Official (AO) signs the ATO (Authority to Operate).", correct: true, feedback: "Correct! The AO is the only person liable for accepting the residual risk of operating the system." },
+                    { text: "The System Owner.", correct: false, feedback: "The System Owner owns the budget/system, but the AO owns the risk acceptance." }
+                ]
+            },
+            {
+                stepId: 7,
+                name: "Monitor",
+                short: "Mon",
+                icon: "📡",
+                scenario: "Congratulations, you have an ATO! Are you done? What happens in the Monitor step?",
+                options: [
+                    { text: "Yes, we are done until the ATO expires in 3 years.", correct: false, feedback: "RMF is continuous. 'Set and forget' is the old way." },
+                    { text: "Continuously monitor controls, assess changes, and report security posture.", correct: true, feedback: "Correct! You must practice Continuous Monitoring (ConMon) to track changes and new threats." },
+                    { text: "Only check logs if a hack occurs.", correct: false, feedback: "Monitoring must be proactive, not just reactive." }
+                ]
+            }
+        ];
+
+        // Game Logic
+        const game = {
+            currentLevel: 0,
+            score: 0,
+            maxScore: rmfData.length * 100,
+
+            init: function() {
+                this.renderSteps();
+            },
+
+            start: function() {
+                document.getElementById('intro-screen').classList.add('hidden');
+                this.loadLevel(0);
+            },
+
+            renderSteps: function() {
+                const container = document.getElementById('steps-container');
+                container.innerHTML = '';
+                
+                rmfData.forEach((step, index) => {
+                    const div = document.createElement('div');
+                    // Logic for visual styles handled in updateSteps
+                    div.id = `step-indicator-${index}`;
+                    div.className = `w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center border-2 font-bold text-xs md:text-sm transition-all duration-300 step-pending z-10 bg-slate-900`;
+                    div.innerHTML = `<span class="hidden md:inline">${step.icon}</span><span class="md:hidden">${step.stepId}</span>`;
+                    
+                    // Tooltip/Label
+                    const label = document.createElement('div');
+                    label.className = "absolute mt-14 text-[10px] md:text-xs text-slate-400 font-medium uppercase tracking-wider w-20 text-center -ml-4 md:-ml-4";
+                    label.innerText = step.short;
+                    div.appendChild(label);
+
+                    container.appendChild(div);
+                });
+            },
+
+            updateSteps: function() {
+                rmfData.forEach((step, index) => {
+                    const el = document.getElementById(`step-indicator-${index}`);
+                    // Reset
+                    el.classList.remove('step-pending', 'step-active', 'step-completed');
+                    
+                    if (index < this.currentLevel) {
+                        el.classList.add('step-completed');
+                        el.style.borderColor = '#10b981'; // Emerald
+                    } else if (index === this.currentLevel) {
+                        el.classList.add('step-active');
+                        el.style.borderColor = '#0ea5e9'; // Sky
+                    } else {
+                        el.classList.add('step-pending');
+                        el.style.borderColor = '#334155'; // Slate 700
+                    }
+                });
+            },
+
+            loadLevel: function(index) {
+                this.currentLevel = index;
+                this.updateSteps();
+                
+                const levelData = rmfData[index];
+                const contentDiv = document.getElementById('level-content');
+                
+                // Clear previous content
+                contentDiv.innerHTML = '';
+
+                // Build HTML
+                const html = `
+                    <div class="mb-6">
+                        <div class="flex items-center mb-4">
+                            <span class="bg-sky-500/20 text-sky-400 text-xs font-bold px-3 py-1 rounded-full border border-sky-500/30 uppercase tracking-wider mr-3">Step ${levelData.stepId}</span>
+                            <h2 class="text-2xl font-bold text-white">${levelData.name}</h2>
+                        </div>
+                        <div class="bg-slate-800/50 p-5 rounded-xl border border-slate-700/50 shadow-inner">
+                            <p class="text-slate-200 text-lg leading-relaxed">${levelData.scenario}</p>
+                        </div>
+                    </div>
+
+                    <div class="grid gap-3">
+                        ${levelData.options.map((opt, i) => `
+                            <button onclick="game.handleChoice(${i})" 
+                                class="option-btn w-full text-left p-4 rounded-xl border border-slate-600 bg-slate-800 hover:bg-slate-700 text-slate-200 flex items-center group">
+                                <div class="w-8 h-8 rounded-full bg-slate-700 text-slate-400 flex items-center justify-center mr-4 font-bold group-hover:bg-sky-500 group-hover:text-white transition-colors">
+                                    ${String.fromCharCode(65 + i)}
+                                </div>
+                                <span>${opt.text}</span>
+                            </button>
+                        `).join('')}
+                    </div>
+                `;
+
+                contentDiv.innerHTML = html;
+                
+                // Trigger animation
+                contentDiv.classList.remove('animate-slide-in');
+                void contentDiv.offsetWidth; // trigger reflow
+                contentDiv.classList.add('animate-slide-in');
+            },
+
+            handleChoice: function(optionIndex) {
+                const levelData = rmfData[this.currentLevel];
+                const choice = levelData.options[optionIndex];
+                
+                const modal = document.getElementById('feedback-modal');
+                const title = document.getElementById('feedback-title');
+                const text = document.getElementById('feedback-text');
+                const icon = document.getElementById('feedback-icon');
+                const nextBtn = document.getElementById('next-btn');
+
+                modal.classList.remove('hidden');
+
+                if (choice.correct) {
+                    this.score += 100;
+                    document.getElementById('score-display').innerText = this.score;
+                    
+                    icon.innerHTML = '<div class="w-16 h-16 bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto"><span class="text-3xl">✅</span></div>';
+                    title.innerText = "Correct Decision!";
+                    title.className = "text-2xl font-bold mb-2 text-emerald-400";
+                    
+                    nextBtn.onclick = () => {
+                        modal.classList.add('hidden');
+                        if (this.currentLevel < rmfData.length - 1) {
+                            this.loadLevel(this.currentLevel + 1);
+                        } else {
+                            this.endGame();
+                        }
+                    };
+                } else {
+                    this.score = Math.max(0, this.score - 20); // Penalty
+                    document.getElementById('score-display').innerText = this.score;
+
+                    icon.innerHTML = '<div class="w-16 h-16 bg-rose-500/20 rounded-full flex items-center justify-center mx-auto"><span class="text-3xl">⚠️</span></div>';
+                    title.innerText = "Risk Violation";
+                    title.className = "text-2xl font-bold mb-2 text-rose-400";
+                    
+                    nextBtn.onclick = () => {
+                        modal.classList.add('hidden');
+                        // Stay on same level
+                    };
+                }
+
+                text.innerText = choice.feedback;
+            },
+
+            endGame: function() {
+                document.getElementById('level-content').classList.add('hidden');
+                document.getElementById('steps-container').parentElement.classList.add('hidden');
+                document.getElementById('victory-screen').classList.remove('hidden');
+                document.getElementById('final-score').innerText = this.score;
+            }
+        };
+
+        // Initialize
+        game.init();
+
+    </script>
+</body>
+</html>

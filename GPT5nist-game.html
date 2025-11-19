@@ -1,0 +1,1070 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>NIST RMF Trainer</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card: #111827;
+      --card-soft: #1f2937;
+      --accent: #38bdf8;
+      --accent-soft: #0ea5e9;
+      --success: #22c55e;
+      --danger: #f97373;
+      --text-main: #e5e7eb;
+      --text-muted: #9ca3af;
+      --border-subtle: #1f2937;
+      --shadow-soft: 0 18px 40px rgba(15, 23, 42, 0.9);
+      --radius-xl: 18px;
+      --radius-pill: 999px;
+      --transition-fast: 0.16s ease-out;
+      --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+        sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: var(--font-sans);
+      background: radial-gradient(circle at top, #1f2937 0, #020617 55%, #000 100%);
+      color: var(--text-main);
+      display: flex;
+      align-items: stretch;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .app-shell {
+      max-width: 1100px;
+      width: 100%;
+      margin: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    header.app-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .title-block {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logo-pill {
+      width: 40px;
+      height: 40px;
+      border-radius: 16px;
+      background: radial-gradient(circle at 20% 0, #38bdf8 0, #0f172a 55%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      box-shadow: 0 10px 30px rgba(56, 189, 248, 0.4);
+    }
+
+    .title-text h1 {
+      font-size: 1.4rem;
+      margin: 0;
+      letter-spacing: 0.02em;
+    }
+
+    .title-text p {
+      margin: 0;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    .badge {
+      padding: 6px 12px;
+      border-radius: var(--radius-pill);
+      border: 1px solid rgba(148, 163, 184, 0.4);
+      font-size: 0.76rem;
+      color: var(--text-muted);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      backdrop-filter: blur(18px);
+      background: linear-gradient(
+        135deg,
+        rgba(15, 23, 42, 0.9),
+        rgba(15, 23, 42, 0.5)
+      );
+    }
+
+    main.layout {
+      display: grid;
+      grid-template-columns: minmax(0, 3fr) minmax(260px, 1.4fr);
+      gap: 18px;
+      align-items: flex-start;
+    }
+
+    @media (max-width: 880px) {
+      body {
+        padding: 14px;
+      }
+
+      main.layout {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+
+    .card {
+      background: radial-gradient(circle at top left, #111827 0, #020617 65%);
+      border-radius: var(--radius-xl);
+      padding: 20px;
+      border: 1px solid rgba(31, 41, 55, 0.9);
+      box-shadow: var(--shadow-soft);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at top, rgba(56, 189, 248, 0.12), transparent 55%);
+      mix-blend-mode: screen;
+      opacity: 0.9;
+      pointer-events: none;
+    }
+
+    .card-inner {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    /* RMF step strip */
+
+    .rmf-strip {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      padding: 8px;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.96);
+      border: 1px solid rgba(31, 41, 55, 0.95);
+    }
+
+    .rmf-step {
+      flex: 1 1 auto;
+      min-width: 0;
+      padding: 6px 8px;
+      border-radius: 999px;
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      border: 1px solid rgba(55, 65, 81, 0.9);
+      background: linear-gradient(
+        135deg,
+        rgba(15, 23, 42, 0.9),
+        rgba(15, 23, 42, 0.7)
+      );
+      position: relative;
+      overflow: hidden;
+    }
+
+    .rmf-step span.label {
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      overflow: hidden;
+    }
+
+    .rmf-step .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: rgba(148, 163, 184, 0.6);
+    }
+
+    .rmf-step.step-mastered {
+      border-color: rgba(34, 197, 94, 0.9);
+      background: linear-gradient(
+        135deg,
+        rgba(22, 163, 74, 0.22),
+        rgba(5, 46, 22, 0.98)
+      );
+      color: #bbf7d0;
+    }
+
+    .rmf-step.step-mastered .dot {
+      background: var(--success);
+    }
+
+    .rmf-step.step-struggling {
+      border-color: rgba(248, 113, 113, 0.95);
+      background: linear-gradient(
+        135deg,
+        rgba(127, 29, 29, 0.95),
+        rgba(15, 23, 42, 1)
+      );
+      color: #fecaca;
+    }
+
+    .rmf-step.step-struggling .dot {
+      background: var(--danger);
+    }
+
+    /* Question area */
+
+    .question-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 10px;
+    }
+
+    .question-title {
+      font-size: 1rem;
+      font-weight: 600;
+    }
+
+    .meta {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .pill {
+      padding: 4px 10px;
+      border-radius: var(--radius-pill);
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid rgba(31, 41, 55, 0.9);
+    }
+
+    .progress-shell {
+      margin-top: 4px;
+      height: 6px;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 1);
+      overflow: hidden;
+      border: 1px solid rgba(31, 41, 55, 0.9);
+    }
+
+    .progress-fill {
+      height: 100%;
+      width: 0;
+      border-radius: inherit;
+      background: linear-gradient(90deg, #38bdf8, #22c55e);
+      transition: width var(--transition-fast);
+    }
+
+    .question-body {
+      margin-top: 10px;
+      padding: 14px 14px 12px;
+      background: radial-gradient(circle at top left, #1f2937 0, #020617 90%);
+      border-radius: 14px;
+      border: 1px solid rgba(31, 41, 55, 0.95);
+      font-size: 0.9rem;
+      line-height: 1.5;
+      color: #e5e7eb;
+    }
+
+    /* Options */
+
+    .options-grid {
+      margin-top: 12px;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      gap: 8px;
+    }
+
+    @media (min-width: 640px) {
+      .options-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    button.option-btn {
+      border-radius: 12px;
+      border: 1px solid rgba(31, 41, 55, 0.9);
+      background: rgba(15, 23, 42, 0.96);
+      padding: 10px 12px;
+      font: inherit;
+      color: var(--text-main);
+      text-align: left;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      justify-content: flex-start;
+      transition:
+        transform var(--transition-fast),
+        box-shadow var(--transition-fast),
+        border-color var(--transition-fast),
+        background var(--transition-fast),
+        opacity var(--transition-fast);
+      box-shadow: 0 0 0 rgba(15, 23, 42, 0);
+    }
+
+    button.option-btn .step-tag {
+      font-size: 0.76rem;
+      padding: 3px 8px;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.95);
+      border: 1px solid rgba(31, 41, 55, 0.95);
+      color: var(--text-muted);
+    }
+
+    button.option-btn span.label {
+      font-size: 0.88rem;
+      flex: 1;
+    }
+
+    button.option-btn:hover:not(:disabled) {
+      transform: translateY(-1px);
+      border-color: rgba(56, 189, 248, 0.9);
+      box-shadow: 0 12px 24px rgba(15, 23, 42, 0.9);
+      background: radial-gradient(
+        circle at top,
+        rgba(15, 23, 42, 1),
+        rgba(15, 23, 42, 0.96)
+      );
+    }
+
+    button.option-btn:disabled {
+      cursor: default;
+      opacity: 0.9;
+    }
+
+    button.option-btn.correct {
+      border-color: rgba(34, 197, 94, 0.95);
+      background: linear-gradient(
+        135deg,
+        rgba(22, 163, 74, 0.28),
+        rgba(6, 78, 59, 0.98)
+      );
+      box-shadow: 0 14px 35px rgba(16, 185, 129, 0.55);
+    }
+
+    button.option-btn.incorrect {
+      border-color: rgba(248, 113, 113, 0.95);
+      background: linear-gradient(
+        135deg,
+        rgba(127, 29, 29, 0.96),
+        rgba(15, 23, 42, 0.98)
+      );
+      box-shadow: 0 14px 35px rgba(239, 68, 68, 0.55);
+    }
+
+    .feedback {
+      margin-top: 10px;
+      font-size: 0.86rem;
+      padding: 8px 10px;
+      border-radius: 10px;
+      border: 1px solid transparent;
+      background: rgba(15, 23, 42, 0.95);
+      color: var(--text-muted);
+      min-height: 2.2em;
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+    }
+
+    .feedback.correct-text {
+      border-color: rgba(34, 197, 94, 0.9);
+      color: #bbf7d0;
+    }
+
+    .feedback.incorrect-text {
+      border-color: rgba(248, 113, 113, 0.95);
+      color: #fecaca;
+    }
+
+    .feedback-icon {
+      font-size: 1rem;
+      margin-top: 1px;
+    }
+
+    .card-footer {
+      margin-top: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.86rem;
+      color: var(--text-muted);
+    }
+
+    .score-line strong {
+      color: var(--accent-soft);
+    }
+
+    button.primary {
+      border-radius: var(--radius-pill);
+      border: 1px solid rgba(56, 189, 248, 0.9);
+      padding: 7px 16px;
+      font: inherit;
+      font-size: 0.86rem;
+      cursor: pointer;
+      color: #e0f2fe;
+      background: radial-gradient(circle at top, #0ea5e9, #0369a1);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      box-shadow: 0 12px 25px rgba(56, 189, 248, 0.55);
+      transition:
+        transform var(--transition-fast),
+        box-shadow var(--transition-fast),
+        filter var(--transition-fast),
+        opacity var(--transition-fast);
+    }
+
+    button.primary:disabled {
+      opacity: 0.5;
+      cursor: default;
+      box-shadow: none;
+      transform: none;
+    }
+
+    button.primary:not(:disabled):hover {
+      transform: translateY(-1px);
+      box-shadow: 0 16px 38px rgba(56, 189, 248, 0.65);
+      filter: brightness(1.04);
+    }
+
+    /* Cheat sheet */
+
+    .cheat-card {
+      background: linear-gradient(145deg, #020617, #020617);
+      border-radius: var(--radius-xl);
+      padding: 16px;
+      border: 1px solid rgba(31, 41, 55, 0.95);
+      box-shadow: 0 16px 35px rgba(15, 23, 42, 1);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .cheat-card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(
+        circle at top,
+        rgba(56, 189, 248, 0.12),
+        transparent 60%
+      );
+      opacity: 0.9;
+      pointer-events: none;
+    }
+
+    .cheat-inner {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .cheat-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .cheat-header h2 {
+      margin: 0;
+      font-size: 0.98rem;
+    }
+
+    .cheat-header p {
+      margin: 0;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .cheat-body {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .step-row {
+      padding: 6px 8px;
+      border-radius: 10px;
+      background: rgba(15, 23, 42, 0.97);
+      border: 1px solid rgba(31, 41, 55, 0.95);
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .step-row-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 8px;
+    }
+
+    .step-row-title {
+      font-size: 0.82rem;
+      color: #e5e7eb;
+      font-weight: 600;
+    }
+
+    .step-row-tag {
+      font-size: 0.72rem;
+      color: var(--accent-soft);
+    }
+
+    .step-row-body {
+      font-size: 0.78rem;
+    }
+
+    .cheat-footer {
+      margin-top: 4px;
+      font-size: 0.74rem;
+      color: var(--text-muted);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    button.ghost {
+      border-radius: var(--radius-pill);
+      border: 1px solid rgba(51, 65, 85, 0.9);
+      background: rgba(15, 23, 42, 0.98);
+      color: var(--text-muted);
+      font: inherit;
+      font-size: 0.76rem;
+      padding: 4px 10px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition:
+        background var(--transition-fast),
+        border-color var(--transition-fast),
+        color var(--transition-fast),
+        transform var(--transition-fast),
+        opacity var(--transition-fast);
+    }
+
+    button.ghost:hover {
+      background: rgba(15, 23, 42, 0.9);
+      border-color: rgba(148, 163, 184, 0.9);
+      color: #e5e7eb;
+      transform: translateY(-1px);
+    }
+
+    .cheat-card.collapsed .cheat-body,
+    .cheat-card.collapsed .cheat-footer {
+      display: none;
+    }
+
+    .cheat-card.collapsed {
+      padding-bottom: 10px;
+    }
+
+    .cheat-card.collapsed .cheat-header h2::after {
+      content: " (collapsed)";
+      font-size: 0.72rem;
+      color: var(--text-muted);
+    }
+
+    @media (max-width: 880px) {
+      .cheat-card {
+        order: -1;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <header class="app-header">
+      <div class="title-block">
+        <div class="logo-pill">🛡️</div>
+        <div class="title-text">
+          <h1>NIST RMF Mini-Game</h1>
+          <p>Practice the 7 steps with quick scenario checks.</p>
+        </div>
+      </div>
+      <div class="badge">
+        <span>RMF v2 • NIST SP 800-37</span>
+      </div>
+    </header>
+
+    <main class="layout">
+      <!-- Game card -->
+      <section class="card">
+        <div class="card-inner">
+          <!-- RMF strip -->
+          <div class="rmf-strip">
+            <div class="rmf-step" data-step="Prepare">
+              <span class="dot"></span>
+              <span class="label">Prepare</span>
+            </div>
+            <div class="rmf-step" data-step="Categorize">
+              <span class="dot"></span>
+              <span class="label">Categorize</span>
+            </div>
+            <div class="rmf-step" data-step="Select">
+              <span class="dot"></span>
+              <span class="label">Select</span>
+            </div>
+            <div class="rmf-step" data-step="Implement">
+              <span class="dot"></span>
+              <span class="label">Implement</span>
+            </div>
+            <div class="rmf-step" data-step="Assess">
+              <span class="dot"></span>
+              <span class="label">Assess</span>
+            </div>
+            <div class="rmf-step" data-step="Authorize">
+              <span class="dot"></span>
+              <span class="label">Authorize</span>
+            </div>
+            <div class="rmf-step" data-step="Monitor">
+              <span class="dot"></span>
+              <span class="label">Monitor</span>
+            </div>
+          </div>
+
+          <!-- Question + progress -->
+          <div class="question-header">
+            <div class="question-title" id="question-title">
+              Scenario
+            </div>
+            <div class="meta">
+              <span class="pill" id="question-counter">Question 1 of 10</span>
+              <span class="pill" id="difficulty-pill">Mode: Practice</span>
+            </div>
+          </div>
+          <div class="progress-shell">
+            <div class="progress-fill" id="progress-fill"></div>
+          </div>
+
+          <div class="question-body" id="question-text">
+            Loading question...
+          </div>
+
+          <!-- Options -->
+          <div class="options-grid" id="options-container"></div>
+
+          <!-- Feedback -->
+          <div class="feedback" id="feedback">
+            <span class="feedback-icon" id="feedback-icon">💡</span>
+            <span id="feedback-text">Select an RMF step for this scenario.</span>
+          </div>
+
+          <!-- Footer -->
+          <div class="card-footer">
+            <div class="score-line" id="score-line">
+              Score: <strong>0 / 0</strong>
+            </div>
+            <button class="primary" id="next-btn" disabled>
+              Next scenario ⮞
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Cheat sheet -->
+      <aside class="cheat-card" id="cheat-card">
+        <div class="cheat-inner">
+          <div class="cheat-header">
+            <div>
+              <h2>RMF Cheat Sheet</h2>
+              <p>Use this like a tiny pocket guide.</p>
+            </div>
+            <button class="ghost" id="cheat-toggle">
+              Collapse
+            </button>
+          </div>
+          <div class="cheat-body">
+            <div class="step-row">
+              <div class="step-row-header">
+                <span class="step-row-title">1. Prepare</span>
+                <span class="step-row-tag">Governance &amp; context</span>
+              </div>
+              <div class="step-row-body">
+                Build organization-level risk strategy, assign roles, and get your
+                environment “ready” to actually run RMF across systems.
+              </div>
+            </div>
+            <div class="step-row">
+              <div class="step-row-header">
+                <span class="step-row-title">2. Categorize</span>
+                <span class="step-row-tag">FIPS 199 / impact</span>
+              </div>
+              <div class="step-row-body">
+                Define the system, information types, and impact levels
+                (confidentiality, integrity, availability) to drive control
+                selection.
+              </div>
+            </div>
+            <div class="step-row">
+              <div class="step-row-header">
+                <span class="step-row-title">3. Select</span>
+                <span class="step-row-tag">Control baselines</span>
+              </div>
+              <div class="step-row-body">
+                Choose and tailor security and privacy controls from NIST
+                catalogs based on the categorization result.
+              </div>
+            </div>
+            <div class="step-row">
+              <div class="step-row-header">
+                <span class="step-row-title">4. Implement</span>
+                <span class="step-row-tag">Do the work</span>
+              </div>
+              <div class="step-row-body">
+                Put the selected controls in place and document how they are
+                implemented in the system and environment.
+              </div>
+            </div>
+            <div class="step-row">
+              <div class="step-row-header">
+                <span class="step-row-title">5. Assess</span>
+                <span class="step-row-tag">Test &amp; verify</span>
+              </div>
+              <div class="step-row-body">
+                Check if controls are correctly implemented and effective using
+                assessment procedures; document findings &amp; residual risk.
+              </div>
+            </div>
+            <div class="step-row">
+              <div class="step-row-header">
+                <span class="step-row-title">6. Authorize</span>
+                <span class="step-row-tag">Risk decision</span>
+              </div>
+              <div class="step-row-body">
+                Authorizing official reviews risk information and decides to
+                grant, deny, or rescind authorization for operation.
+              </div>
+            </div>
+            <div class="step-row">
+              <div class="step-row-header">
+                <span class="step-row-title">7. Monitor</span>
+                <span class="step-row-tag">Continuous</span>
+              </div>
+              <div class="step-row-body">
+                Continuously track control effectiveness, system changes, and
+                risk posture to support ongoing authorization decisions.
+              </div>
+            </div>
+          </div>
+          <div class="cheat-footer">
+            <span>Tip: match the scenario to the intent of the step.</span>
+            <span>Score tracks across the whole session.</span>
+          </div>
+        </div>
+      </aside>
+    </main>
+  </div>
+
+  <script>
+    // Core data: RMF scenario questions.
+    const QUESTIONS = [
+      {
+        text:
+          "Your organization is defining a repeatable way to assign system owners, establish common control inheritance, and standardize risk tolerance before touching any single system. What RMF step are you in?",
+        answer: "Prepare"
+      },
+      {
+        text:
+          "You are documenting the mission of a new HR system, its information types, and deciding that loss of confidentiality would be HIGH while integrity and availability are MODERATE. Which RMF step is this?",
+        answer: "Categorize"
+      },
+      {
+        text:
+          "Based on a system categorized as MODERATE, you are choosing a baseline of controls and tailoring them using overlays and scoping guidance. Where does this activity belong?",
+        answer: "Select"
+      },
+      {
+        text:
+          "You are configuring multi-factor authentication, updating system hardening baselines, and wiring logging into a SIEM according to your control set. Which RMF step is this?",
+        answer: "Implement"
+      },
+      {
+        text:
+          "An independent assessor is executing test procedures, reviewing evidence, and determining if controls are implemented correctly, operating as intended, and producing desired outcomes. What RMF step is that?",
+        answer: "Assess"
+      },
+      {
+        text:
+          "You are assembling a security authorization package (SSP, SAR, POA&amp;M) for an authorizing official to accept, mitigate, or reject residual risk. Which step does this describe?",
+        answer: "Authorize"
+      },
+      {
+        text:
+          "The system is in production. You are tracking new vulnerabilities, config drift, ongoing control effectiveness, and updating risk posture over time. What RMF step are you performing?",
+        answer: "Monitor"
+      },
+      {
+        text:
+          "Before any individual systems are touched, leadership wants a portfolio-wide plan to align RMF with budgeting, acquisition, and enterprise architecture. Where does that fit?",
+        answer: "Prepare"
+      },
+      {
+        text:
+          "You discover major architectural changes to a live system and update the security plan, control implementation statements, and impact analysis as part of ongoing activity. Which RMF step is this work tied to?",
+        answer: "Monitor"
+      },
+      {
+        text:
+          "You are mapping safeguards from a cloud provider’s responsibility matrix into your control set and documenting how inherited controls meet requirements. What RMF step is primarily in play?",
+        answer: "Implement"
+      },
+      {
+        text:
+          "The authorizing official signs a decision memo indicating they are willing to accept the remaining risk for a defined period, with conditions captured in a POA&amp;M. Which step is that?",
+        answer: "Authorize"
+      },
+      {
+        text:
+          "Impact levels have changed because the system now processes new categories of PII, so you re-evaluate the security impact and update your control selection. What RMF step is triggered first?",
+        answer: "Categorize"
+      },
+      {
+        text:
+          "You are choosing additional controls beyond the baseline to handle a unique mission requirement and threat environment. Which RMF step is that part of?",
+        answer: "Select"
+      },
+      {
+        text:
+          "You are validating remediation of findings from a previous assessment to ensure weaknesses were corrected and risk reduced as expected. This best fits which RMF step?",
+        answer: "Assess"
+      }
+    ];
+
+    const ALL_STEPS = [
+      "Prepare",
+      "Categorize",
+      "Select",
+      "Implement",
+      "Assess",
+      "Authorize",
+      "Monitor"
+    ];
+
+    // State
+    let shuffledQuestions = [];
+    let currentIndex = 0;
+    let score = 0;
+    let gameOver = false;
+
+    // DOM references
+    const questionTextEl = document.getElementById("question-text");
+    const questionCounterEl = document.getElementById("question-counter");
+    const optionsContainer = document.getElementById("options-container");
+    const feedbackEl = document.getElementById("feedback");
+    const feedbackTextEl = document.getElementById("feedback-text");
+    const feedbackIconEl = document.getElementById("feedback-icon");
+    const scoreLineEl = document.getElementById("score-line");
+    const progressFillEl = document.getElementById("progress-fill");
+    const nextBtn = document.getElementById("next-btn");
+    const cheatCard = document.getElementById("cheat-card");
+    const cheatToggle = document.getElementById("cheat-toggle");
+
+    let acceptingAnswers = true;
+
+    function shuffle(array) {
+      const arr = array.slice();
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      return arr;
+    }
+
+    function initGame() {
+      shuffledQuestions = shuffle(QUESTIONS);
+      currentIndex = 0;
+      score = 0;
+      gameOver = false;
+      nextBtn.textContent = "Next scenario ⮞";
+      resetStepHighlights();
+      loadQuestion();
+    }
+
+    function loadQuestion() {
+      const total = shuffledQuestions.length;
+
+      if (currentIndex >= total) {
+        endGame();
+        return;
+      }
+
+      const q = shuffledQuestions[currentIndex];
+      questionTextEl.innerHTML = q.text;
+      questionCounterEl.textContent =
+        "Question " + (currentIndex + 1) + " of " + total;
+
+      // Build options
+      optionsContainer.innerHTML = "";
+      ALL_STEPS.forEach((step) => {
+        const btn = document.createElement("button");
+        btn.className = "option-btn";
+        btn.dataset.value = step;
+
+        const tag = document.createElement("span");
+        tag.className = "step-tag";
+        tag.textContent = step[0];
+
+        const label = document.createElement("span");
+        label.className = "label";
+        label.textContent = step;
+
+        btn.appendChild(tag);
+        btn.appendChild(label);
+
+        btn.addEventListener("click", onOptionClick);
+        optionsContainer.appendChild(btn);
+      });
+
+      // Reset feedback & controls
+      feedbackEl.classList.remove("correct-text", "incorrect-text");
+      feedbackIconEl.textContent = "💡";
+      feedbackTextEl.textContent =
+        "Select the RMF step that best matches this scenario.";
+      nextBtn.disabled = true;
+      acceptingAnswers = true;
+
+      updateScoreLine();
+      updateProgress();
+    }
+
+    function onOptionClick(event) {
+      if (!acceptingAnswers || gameOver) return;
+      acceptingAnswers = false;
+
+      const selected = event.currentTarget.dataset.value;
+      const q = shuffledQuestions[currentIndex];
+
+      const optionButtons = Array.from(
+        optionsContainer.querySelectorAll(".option-btn")
+      );
+
+      optionButtons.forEach((btn) => {
+        btn.disabled = true;
+        if (btn.dataset.value === q.answer) {
+          btn.classList.add("correct");
+        }
+      });
+
+      if (selected === q.answer) {
+        score++;
+        feedbackEl.classList.add("correct-text");
+        feedbackIconEl.textContent = "✅";
+        feedbackTextEl.textContent =
+          "Correct. That scenario fits the “" +
+          q.answer +
+          "” step.";
+        highlightStep(q.answer, true);
+      } else {
+        event.currentTarget.classList.add("incorrect");
+        feedbackEl.classList.add("incorrect-text");
+        feedbackIconEl.textContent = "⚠️";
+        feedbackTextEl.textContent =
+          "Not quite. That scenario aligns best with “" +
+          q.answer +
+          "”.";
+        highlightStep(q.answer, false);
+      }
+
+      updateScoreLine();
+      nextBtn.disabled = false;
+    }
+
+    function updateScoreLine() {
+      const total = shuffledQuestions.length || 0;
+      scoreLineEl.innerHTML =
+        "Score: <strong>" + score + " / " + total + "</strong>";
+    }
+
+    function updateProgress() {
+      const total = shuffledQuestions.length || 1;
+      const pct = (currentIndex / total) * 100;
+      progressFillEl.style.width = pct + "%";
+    }
+
+    function highlightStep(step, correct) {
+      const stepEl = document.querySelector('.rmf-step[data-step="' + step + '"]');
+      if (!stepEl) return;
+      if (correct) {
+        stepEl.classList.add("step-mastered");
+      } else {
+        stepEl.classList.add("step-struggling");
+      }
+    }
+
+    function resetStepHighlights() {
+      document.querySelectorAll(".rmf-step").forEach((el) => {
+        el.classList.remove("step-mastered", "step-struggling");
+      });
+    }
+
+    function endGame() {
+      gameOver = true;
+      nextBtn.disabled = false;
+      nextBtn.textContent = "Play again ⟳";
+      feedbackEl.classList.remove("incorrect-text");
+      feedbackEl.classList.add("correct-text");
+      feedbackIconEl.textContent = "🎯";
+
+      const total = shuffledQuestions.length || 0;
+      const pct = total ? Math.round((score / total) * 100) : 0;
+
+      feedbackTextEl.textContent =
+        "Session complete. You scored " +
+        score +
+        " out of " +
+        total +
+        " (" +
+        pct +
+        "%). Try again to burn the RMF steps into muscle memory.";
+
+      questionTextEl.innerHTML =
+        "You’ve reached the end of this set of scenarios. Hit “Play again” to reshuffle and keep practicing.";
+      optionsContainer.innerHTML = "";
+      updateProgress();
+    }
+
+    nextBtn.addEventListener("click", () => {
+      if (gameOver) {
+        initGame();
+        return;
+      }
+      currentIndex++;
+      loadQuestion();
+    });
+
+    cheatToggle.addEventListener("click", () => {
+      cheatCard.classList.toggle("collapsed");
+      cheatToggle.textContent = cheatCard.classList.contains("collapsed")
+        ? "Expand"
+        : "Collapse";
+    });
+
+    // Bootstrap
+    initGame();
+  </script>
+</body>
+</html>
