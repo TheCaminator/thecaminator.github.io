@@ -325,6 +325,13 @@
       background: rgba(15, 23, 42, 0.95);
       border: 1px solid rgba(31, 41, 55, 0.95);
       color: var(--text-muted);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 44px;
+      text-align: center;
+      letter-spacing: 0.06em;
+      font-weight: 600;
     }
 
     button.option-btn span.label {
@@ -407,6 +414,13 @@
       color: var(--text-muted);
     }
 
+    .footer-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
     .score-line strong {
       color: var(--accent-soft);
     }
@@ -442,6 +456,39 @@
       transform: translateY(-1px);
       box-shadow: 0 16px 38px rgba(56, 189, 248, 0.65);
       filter: brightness(1.04);
+    }
+
+    button.ghost {
+      border-radius: var(--radius-pill);
+      border: 1px solid rgba(51, 65, 85, 0.9);
+      background: rgba(15, 23, 42, 0.98);
+      color: var(--text-muted);
+      font: inherit;
+      font-size: 0.76rem;
+      padding: 5px 11px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition:
+        background var(--transition-fast),
+        border-color var(--transition-fast),
+        color var(--transition-fast),
+        transform var(--transition-fast),
+        opacity var(--transition-fast);
+    }
+
+    button.ghost:hover:not(:disabled) {
+      background: rgba(15, 23, 42, 0.9);
+      border-color: rgba(148, 163, 184, 0.9);
+      color: #e5e7eb;
+      transform: translateY(-1px);
+    }
+
+    button.ghost:disabled {
+      opacity: 0.4;
+      cursor: default;
+      transform: none;
     }
 
     /* Cheat sheet */
@@ -546,33 +593,6 @@
       flex-wrap: wrap;
     }
 
-    button.ghost {
-      border-radius: var(--radius-pill);
-      border: 1px solid rgba(51, 65, 85, 0.9);
-      background: rgba(15, 23, 42, 0.98);
-      color: var(--text-muted);
-      font: inherit;
-      font-size: 0.76rem;
-      padding: 4px 10px;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      transition:
-        background var(--transition-fast),
-        border-color var(--transition-fast),
-        color var(--transition-fast),
-        transform var(--transition-fast),
-        opacity var(--transition-fast);
-    }
-
-    button.ghost:hover {
-      background: rgba(15, 23, 42, 0.9);
-      border-color: rgba(148, 163, 184, 0.9);
-      color: #e5e7eb;
-      transform: translateY(-1px);
-    }
-
     .cheat-card.collapsed .cheat-body,
     .cheat-card.collapsed .cheat-footer {
       display: none;
@@ -675,8 +695,11 @@
 
           <!-- Footer -->
           <div class="card-footer">
-            <div class="score-line" id="score-line">
-              Score: <strong>0 / 0</strong>
+            <div class="footer-left">
+              <button class="ghost" id="back-btn" disabled>⮜ Back</button>
+              <div class="score-line" id="score-line">
+                Score: <strong>0 / 0</strong>
+              </div>
             </div>
             <button class="primary" id="next-btn" disabled>
               Next scenario ⮞
@@ -851,6 +874,41 @@
         text:
           "You are validating remediation of findings from a previous assessment to ensure weaknesses were corrected and risk reduced as expected. This best fits which RMF step?",
         answer: "Assess"
+      },
+      {
+        text:
+          "You are creating enterprise-level policies that define how SSPs, SARs, and POA&amp;Ms will be structured and maintained consistently across all systems. Which RMF step is driving this?",
+        answer: "Prepare"
+      },
+      {
+        text:
+          "A new mission partner connects to your system and brings in additional mission data, requiring you to re-think potential impact to confidentiality and integrity. Which RMF step is in focus?",
+        answer: "Categorize"
+      },
+      {
+        text:
+          "You are deciding which controls will be common, system-specific, or hybrid across a multi-tenant environment, then documenting that in a control allocation matrix. What RMF step is this?",
+        answer: "Select"
+      },
+      {
+        text:
+          "You are updating firewall rules, revising group policies, and deploying new endpoint agents to satisfy a revised control set after an architecture change. Which RMF step is this?",
+        answer: "Implement"
+      },
+      {
+        text:
+          "A security control assessor is executing penetration testing and vulnerability analysis as part of determining how effective the technical safeguards are. Which RMF step is this aligned with?",
+        answer: "Assess"
+      },
+      {
+        text:
+          "An authorizing official reviews changes in threat intelligence and updated risk registers, then decides to shorten the authorization period and require additional conditions. Which RMF step is this?",
+        answer: "Authorize"
+      },
+      {
+        text:
+          "You are reviewing continuous monitoring outputs, security dashboards, and automated scan results to decide if additional risk responses are needed. What RMF step are you exercising?",
+        answer: "Monitor"
       }
     ];
 
@@ -864,8 +922,19 @@
       "Monitor"
     ];
 
+    const STEP_ABBREVIATIONS = {
+      Prepare: "PREP",
+      Categorize: "CAT",
+      Select: "SEL",
+      Implement: "IMP",
+      Assess: "ASS",
+      Authorize: "AUTH",
+      Monitor: "MON"
+    };
+
     // State
     let shuffledQuestions = [];
+    let questionStates = [];
     let currentIndex = 0;
     let score = 0;
     let gameOver = false;
@@ -880,6 +949,7 @@
     const scoreLineEl = document.getElementById("score-line");
     const progressFillEl = document.getElementById("progress-fill");
     const nextBtn = document.getElementById("next-btn");
+    const backBtn = document.getElementById("back-btn");
     const cheatCard = document.getElementById("cheat-card");
     const cheatToggle = document.getElementById("cheat-toggle");
 
@@ -895,7 +965,23 @@
     }
 
     function initGame() {
-      shuffledQuestions = shuffle(QUESTIONS);
+      // Randomize questions and pick a subset (e.g., 12 per run) for variety
+      const shuffled = shuffle(QUESTIONS);
+      const total = Math.min(12, shuffled.length);
+      shuffledQuestions = shuffled.slice(0, total);
+
+      questionStates = [];
+      for (let i = 0; i < total; i++) {
+        questionStates.push({
+          selected: null,
+          answered: false,
+          correct: false,
+          feedbackType: null,
+          feedbackMsg: "",
+          optionOrder: null
+        });
+      }
+
       currentIndex = 0;
       score = 0;
       gameOver = false;
@@ -913,20 +999,26 @@
       }
 
       const q = shuffledQuestions[currentIndex];
+      const state = questionStates[currentIndex];
+
       questionTextEl.innerHTML = q.text;
       questionCounterEl.textContent =
         "Question " + (currentIndex + 1) + " of " + total;
 
-      // Build options
+      // Build options with stored or new random order
       optionsContainer.innerHTML = "";
-      ALL_STEPS.forEach((step) => {
+      if (!state.optionOrder) {
+        state.optionOrder = shuffle(ALL_STEPS);
+      }
+
+      state.optionOrder.forEach((step) => {
         const btn = document.createElement("button");
         btn.className = "option-btn";
         btn.dataset.value = step;
 
         const tag = document.createElement("span");
         tag.className = "step-tag";
-        tag.textContent = step[0];
+        tag.textContent = STEP_ABBREVIATIONS[step] || step;
 
         const label = document.createElement("span");
         label.className = "label";
@@ -934,12 +1026,11 @@
 
         btn.appendChild(tag);
         btn.appendChild(label);
-
         btn.addEventListener("click", onOptionClick);
         optionsContainer.appendChild(btn);
       });
 
-      // Reset feedback & controls
+      // Reset / restore feedback & controls
       feedbackEl.classList.remove("correct-text", "incorrect-text");
       feedbackIconEl.textContent = "💡";
       feedbackTextEl.textContent =
@@ -947,8 +1038,44 @@
       nextBtn.disabled = true;
       acceptingAnswers = true;
 
+      const optionButtons = Array.from(
+        optionsContainer.querySelectorAll(".option-btn")
+      );
+
+      if (state.answered) {
+        // Restore visual state
+        acceptingAnswers = false;
+        optionButtons.forEach((btn) => {
+          btn.disabled = true;
+          if (btn.dataset.value === shuffledQuestions[currentIndex].answer) {
+            btn.classList.add("correct");
+          }
+          if (
+            state.selected &&
+            !state.correct &&
+            btn.dataset.value === state.selected
+          ) {
+            btn.classList.add("incorrect");
+          }
+        });
+
+        if (state.feedbackType === "correct") {
+          feedbackEl.classList.add("correct-text");
+          feedbackIconEl.textContent = "✅";
+        } else if (state.feedbackType === "incorrect") {
+          feedbackEl.classList.add("incorrect-text");
+          feedbackIconEl.textContent = "⚠️";
+        }
+        if (state.feedbackMsg) {
+          feedbackTextEl.textContent = state.feedbackMsg;
+        }
+        nextBtn.disabled = false;
+      }
+
+      updateScore();
       updateScoreLine();
       updateProgress();
+      backBtn.disabled = currentIndex === 0;
     }
 
     function onOptionClick(event) {
@@ -957,6 +1084,7 @@
 
       const selected = event.currentTarget.dataset.value;
       const q = shuffledQuestions[currentIndex];
+      const state = questionStates[currentIndex];
 
       const optionButtons = Array.from(
         optionsContainer.querySelectorAll(".option-btn")
@@ -969,28 +1097,43 @@
         }
       });
 
+      state.selected = selected;
+      state.answered = true;
+
       if (selected === q.answer) {
-        score++;
+        state.correct = true;
+        state.feedbackType = "correct";
+        state.feedbackMsg =
+          "Correct. That scenario fits the “" + q.answer + "” step.";
         feedbackEl.classList.add("correct-text");
         feedbackIconEl.textContent = "✅";
-        feedbackTextEl.textContent =
-          "Correct. That scenario fits the “" +
-          q.answer +
-          "” step.";
+        feedbackTextEl.textContent = state.feedbackMsg;
         highlightStep(q.answer, true);
       } else {
-        event.currentTarget.classList.add("incorrect");
-        feedbackEl.classList.add("incorrect-text");
-        feedbackIconEl.textContent = "⚠️";
-        feedbackTextEl.textContent =
+        state.correct = false;
+        state.feedbackType = "incorrect";
+        state.feedbackMsg =
           "Not quite. That scenario aligns best with “" +
           q.answer +
           "”.";
+        event.currentTarget.classList.add("incorrect");
+        feedbackEl.classList.add("incorrect-text");
+        feedbackIconEl.textContent = "⚠️";
+        feedbackTextEl.textContent = state.feedbackMsg;
         highlightStep(q.answer, false);
       }
 
+      updateScore();
       updateScoreLine();
       nextBtn.disabled = false;
+    }
+
+    function updateScore() {
+      let s = 0;
+      for (const st of questionStates) {
+        if (st && st.answered && st.correct) s++;
+      }
+      score = s;
     }
 
     function updateScoreLine() {
@@ -1045,6 +1188,7 @@
         "You’ve reached the end of this set of scenarios. Hit “Play again” to reshuffle and keep practicing.";
       optionsContainer.innerHTML = "";
       updateProgress();
+      backBtn.disabled = total === 0;
     }
 
     nextBtn.addEventListener("click", () => {
@@ -1054,6 +1198,21 @@
       }
       currentIndex++;
       loadQuestion();
+    });
+
+    backBtn.addEventListener("click", () => {
+      const total = shuffledQuestions.length;
+      if (gameOver && total > 0) {
+        gameOver = false;
+        currentIndex = total - 1;
+        nextBtn.textContent = "Next scenario ⮞";
+        loadQuestion();
+        return;
+      }
+      if (currentIndex > 0) {
+        currentIndex--;
+        loadQuestion();
+      }
     });
 
     cheatToggle.addEventListener("click", () => {
