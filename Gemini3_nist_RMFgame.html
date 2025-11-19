@@ -72,6 +72,14 @@
             background: rgba(56, 189, 248, 0.1);
         }
 
+        /* Label Centering Utility */
+        .step-label-centered {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            margin-top: 3.5rem; /* Adjust distance from circle */
+        }
+
         .hidden { display: none; }
     </style>
 </head>
@@ -85,10 +93,10 @@
     </div>
 
     <!-- Game Container -->
-    <div id="game-container" class="glass-panel w-full max-w-4xl rounded-2xl p-6 md:p-10 relative">
+    <div id="game-container" class="glass-panel w-full max-w-4xl rounded-2xl p-6 md:p-10 relative min-h-[600px] flex flex-col">
         
         <!-- Header -->
-        <header class="flex justify-between items-center mb-8 border-b border-slate-700 pb-4">
+        <header class="flex justify-between items-center mb-8 border-b border-slate-700 pb-4 flex-none">
             <div>
                 <h1 class="text-2xl md:text-3xl font-bold text-white tracking-tight">RMF <span class="text-sky-400">Defender</span></h1>
                 <p class="text-slate-400 text-sm">NIST Risk Management Framework Simulator</p>
@@ -99,38 +107,53 @@
             </div>
         </header>
 
-        <!-- Progress Stepper -->
-        <div class="mb-10 relative">
+        <!-- Progress Stepper (Visible only during gameplay) -->
+        <div id="stepper-wrapper" class="mb-12 relative hidden flex-none">
             <div class="absolute top-1/2 left-0 w-full h-1 bg-slate-700 -z-10 transform -translate-y-1/2 rounded"></div>
-            <div id="steps-container" class="flex justify-between items-center">
+            <div id="steps-container" class="flex justify-between items-center px-2">
                 <!-- Steps injected by JS -->
             </div>
         </div>
 
-        <!-- Main Content Area -->
-        <div id="level-content" class="animate-slide-in min-h-[300px] flex flex-col justify-between">
+        <!-- Main Content Area (Flexible Growth) -->
+        <div id="level-content" class="animate-slide-in flex-grow flex flex-col relative z-10">
             <!-- Dynamic Content -->
         </div>
 
+        <!-- Navigation Footer (Back Button) -->
+        <div id="nav-footer" class="mt-6 pt-4 border-t border-slate-700 flex justify-between hidden">
+            <button onclick="game.prevLevel()" id="back-btn" class="text-slate-400 hover:text-white flex items-center transition-colors px-3 py-2 rounded hover:bg-slate-800">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                </svg>
+                Previous Step
+            </button>
+            <div><!-- Spacer for right alignment if needed later --></div>
+        </div>
+
         <!-- Intro Screen (Initial State) -->
-        <div id="intro-screen" class="text-center py-10">
-            <div class="bg-sky-500/10 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 ring-2 ring-sky-500/50">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-sky-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <div id="intro-screen" class="absolute inset-0 z-20 flex flex-col items-center justify-center bg-slate-900/90 rounded-2xl p-8 backdrop-blur-sm">
+            <div class="bg-sky-500/10 w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6 ring-2 ring-sky-500/50">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-sky-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                 </svg>
             </div>
-            <h2 class="text-3xl font-bold mb-4">Welcome, Security Officer.</h2>
-            <p class="text-slate-300 mb-8 max-w-lg mx-auto leading-relaxed">
-                Your mission is to secure a new critical Government Information System. 
-                Navigate the <span class="text-sky-400 font-semibold">7 Steps of the NIST RMF</span> to achieve an Authorization to Operate (ATO).
+            <h2 class="text-3xl md:text-4xl font-bold mb-4 text-white">Mission Briefing</h2>
+            <p class="text-slate-300 mb-8 max-w-lg text-center leading-relaxed text-lg">
+                You are the lead Information System Security Officer (ISSO).<br><br>
+                Navigate the <span class="text-sky-400 font-semibold">7 Steps of the NIST RMF</span> to secure federal systems. 
+                Questions are randomized each session.
             </p>
-            <button onclick="game.start()" class="bg-sky-500 hover:bg-sky-600 text-white font-bold py-3 px-8 rounded-lg transition-all shadow-lg shadow-sky-500/30 transform hover:scale-105">
-                Start Mission
+            <button onclick="game.start()" class="bg-sky-500 hover:bg-sky-600 text-white font-bold py-4 px-10 rounded-xl transition-all shadow-lg shadow-sky-500/30 transform hover:scale-105 flex items-center">
+                <span>Initialize Framework</span>
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                </svg>
             </button>
         </div>
 
         <!-- Result Modal (Hidden by default) -->
-        <div id="feedback-modal" class="hidden absolute inset-0 bg-slate-900/95 z-20 rounded-2xl flex flex-col items-center justify-center p-8 text-center backdrop-blur-sm">
+        <div id="feedback-modal" class="hidden absolute inset-0 bg-slate-900/95 z-30 rounded-2xl flex flex-col items-center justify-center p-8 text-center backdrop-blur-sm">
             <div id="feedback-icon" class="mb-4"></div>
             <h3 id="feedback-title" class="text-2xl font-bold mb-2"></h3>
             <p id="feedback-text" class="text-slate-300 mb-6 max-w-md"></p>
@@ -140,18 +163,22 @@
         </div>
 
         <!-- Victory Screen (Hidden by default) -->
-        <div id="victory-screen" class="hidden text-center py-10 animate-slide-in">
-            <div class="text-6xl mb-4">🛡️</div>
-            <h2 class="text-4xl font-bold text-white mb-4">Authorization Granted!</h2>
-            <p class="text-lg text-emerald-400 mb-6 font-mono">ATO STATUS: APPROVED</p>
-            <p class="text-slate-300 mb-8 max-w-xl mx-auto">
-                You have successfully navigated the NIST Risk Management Framework. The system is authorized, and continuous monitoring is active.
-            </p>
-            <div class="bg-slate-800/50 p-6 rounded-xl inline-block mb-8 border border-slate-700">
-                <div class="text-slate-400 text-sm uppercase tracking-wide">Final Score</div>
-                <div id="final-score" class="text-4xl font-bold text-white">0</div>
+        <div id="victory-screen" class="hidden absolute inset-0 bg-slate-900/95 z-30 rounded-2xl flex flex-col items-center justify-center p-8 text-center animate-slide-in">
+            <div class="text-7xl mb-6">🛡️</div>
+            <h2 class="text-4xl font-bold text-white mb-2">Authorization Granted!</h2>
+            <p class="text-lg text-emerald-400 mb-8 font-mono">ATO STATUS: APPROVED</p>
+            
+            <div class="grid grid-cols-2 gap-4 mb-8 w-full max-w-md">
+                <div class="bg-slate-800 p-4 rounded-lg border border-slate-700">
+                    <div class="text-slate-400 text-xs uppercase">Final Score</div>
+                    <div id="final-score" class="text-3xl font-bold text-white">0</div>
+                </div>
+                 <div class="bg-slate-800 p-4 rounded-lg border border-slate-700">
+                    <div class="text-slate-400 text-xs uppercase">Efficiency</div>
+                    <div class="text-3xl font-bold text-sky-400">100%</div>
+                </div>
             </div>
-            <br>
+
             <button onclick="location.reload()" class="bg-slate-700 hover:bg-slate-600 text-white font-bold py-3 px-8 rounded-lg border border-slate-600 transition-all">
                 Replay Mission
             </button>
@@ -160,18 +187,30 @@
     </div>
 
     <script>
-        // Game Data: The 7 Steps of NIST RMF
-        const rmfData = [
+        // Expanded Question Pool
+        const rmfPool = [
             {
                 stepId: 1,
                 name: "Prepare",
                 short: "Prep",
                 icon: "📋",
-                scenario: "You are initiating a new Cloud-based HR System. Before doing anything technical, what is the most critical first step according to the 'Prepare' phase?",
-                options: [
-                    { text: "Immediately install firewalls and antivirus software.", correct: false, feedback: "Installing tools happens later in Implementation. First, you need a strategy." },
-                    { text: "Identify key roles, risk management strategy, and common controls.", correct: true, feedback: "Correct! Preparation involves identifying the ISSO, AO, and defining organization-wide risk strategies." },
-                    { text: "Scan the network for vulnerabilities.", correct: false, feedback: "Scanning is an assessment activity. You aren't ready for that yet." }
+                questions: [
+                    {
+                        scenario: "You are initiating a new Cloud-based HR System. Before doing anything technical, what is the most critical first step according to the 'Prepare' phase?",
+                        options: [
+                            { text: "Install firewalls immediately.", correct: false, feedback: "Too early. You need a strategy first." },
+                            { text: "Identify key roles, risk strategy, and common controls.", correct: true, feedback: "Correct! Preparation establishes the context." },
+                            { text: "Scan for vulnerabilities.", correct: false, feedback: "Scanning happens in Assess or Monitor, not Prepare." }
+                        ]
+                    },
+                    {
+                        scenario: "Your agency lacks a defined Risk Tolerance level. You are in the Prepare phase. What is the best course of action?",
+                        options: [
+                            { text: "Proceed anyway and guess the risk level.", correct: false, feedback: "Dangerous. You need organizational guidance." },
+                            { text: "Define the Risk Management Strategy and Tolerance at the Organization level.", correct: true, feedback: "Correct! You cannot manage system risk without understanding organizational tolerance." },
+                            { text: "Ask the vendor to decide.", correct: false, feedback: "Vendors cannot accept government risk." }
+                        ]
+                    }
                 ]
             },
             {
@@ -179,11 +218,23 @@
                 name: "Categorize",
                 short: "Cat",
                 icon: "🏷️",
-                scenario: "Preparation is done. Now you must Categorize the system. The HR data contains PII (Social Security Numbers). How do you determine the impact level?",
-                options: [
-                    { text: "Guess 'Moderate' because it sounds reasonable.", correct: false, feedback: "Never guess. Categorization must be based on analysis." },
-                    { text: "Ask the system developers what they think.", correct: false, feedback: "Developers focus on functionality, not necessarily risk impact." },
-                    { text: "Analyze the potential impact on Confidentiality, Integrity, and Availability (CIA) based on NIST SP 800-60.", correct: true, feedback: "Correct! You must map information types to impact levels (Low, Moderate, High) for C-I-A." }
+                questions: [
+                    {
+                        scenario: "The system processes PII (Social Security Numbers). How do you determine the impact level?",
+                        options: [
+                            { text: "Mark everything as Low Impact to save money.", correct: false, feedback: "This is negligence. PII usually requires Moderate or High." },
+                            { text: "Analyze impact on Confidentiality, Integrity, and Availability (CIA) via NIST SP 800-60.", correct: true, feedback: "Correct! Mapping information types to impact levels is key." },
+                            { text: "Ask the developers.", correct: false, feedback: "Developers focus on function, not risk impact." }
+                        ]
+                    },
+                    {
+                        scenario: "You have a public-facing web server with no sensitive data. What is the likely Confidentiality impact?",
+                        options: [
+                            { text: "Low Impact.", correct: true, feedback: "Correct! The data is public, so confidentiality loss has limited impact." },
+                            { text: "High Impact.", correct: false, feedback: "Incorrect. Public data is meant to be seen." },
+                            { text: "Not Applicable.", correct: false, feedback: "Every system has a CIA rating." }
+                        ]
+                    }
                 ]
             },
             {
@@ -191,11 +242,23 @@
                 name: "Select",
                 short: "Sel",
                 icon: "✅",
-                scenario: "The system is categorized as 'Moderate'. Now you must Select controls. Where do you look, and what is your primary task?",
-                options: [
-                    { text: "Select the baseline controls from NIST SP 800-53 and tailor them to the system.", correct: true, feedback: "Correct! You start with the baseline for a 'Moderate' system and tailor (add/remove) based on specific needs." },
-                    { text: "Write your own security controls from scratch.", correct: false, feedback: "Creating custom controls from scratch is inefficient and likely non-compliant. Use the 800-53 catalog." },
-                    { text: "Select only the controls that are cheap to implement.", correct: false, feedback: "Cost is a factor, but security requirements dictate the selection, not just budget." }
+                questions: [
+                    {
+                        scenario: "The system is 'Moderate'. How do you choose security controls?",
+                        options: [
+                            { text: "Select baseline controls from NIST SP 800-53 and tailor them.", correct: true, feedback: "Correct! Start with the baseline and adjust." },
+                            { text: "Write custom controls from scratch.", correct: false, feedback: "Inefficient and non-standard." },
+                            { text: "Pick the cheapest ones.", correct: false, feedback: "Security is driven by requirements, not just cost." }
+                        ]
+                    },
+                    {
+                        scenario: "Your system processes Classified information. The standard 'High' baseline isn't enough. What do you do?",
+                        options: [
+                            { text: "Add more firewalls randomly.", correct: false, feedback: "Random controls don't address specific classified needs." },
+                            { text: "Apply the Classified Information Overlay.", correct: true, feedback: "Correct! Overlays provide specialized controls for specific data types." },
+                            { text: "Downgrade the data classification.", correct: false, feedback: "You cannot downgrade data just to make security easier." }
+                        ]
+                    }
                 ]
             },
             {
@@ -203,11 +266,23 @@
                 name: "Implement",
                 short: "Imp",
                 icon: "🛠️",
-                scenario: "Controls are selected. Now entering Implementation. You installed the Identity Management system. What else is required in this step?",
-                options: [
-                    { text: "Assume it works and move to the next step.", correct: false, feedback: "Never assume. Documentation is required." },
-                    { text: "Document how the controls are deployed in the System Security Plan (SSP).", correct: true, feedback: "Correct! Implementation isn't just doing the work; it's documenting the 'How' in the SSP." },
-                    { text: "Ask the Authorizing Official to sign off immediately.", correct: false, feedback: "The AO cannot sign off until the controls are assessed." }
+                questions: [
+                    {
+                        scenario: "You are hosting your app on AWS (Amazon Web Services). Do you need to build a fence around the AWS data center?",
+                        options: [
+                            { text: "Yes, we are responsible for everything.", correct: false, feedback: "You don't own the AWS building." },
+                            { text: "No, Inherit physical controls from the Common Control Provider (AWS).", correct: true, feedback: "Correct! Inheritance saves time and money." },
+                            { text: "Ignore physical security.", correct: false, feedback: "Physical security is still required, just inherited." }
+                        ]
+                    },
+                    {
+                        scenario: "You installed the controls. What documentation is required now?",
+                        options: [
+                            { text: "Update the System Security Plan (SSP) with implementation details.", correct: true, feedback: "Correct! You must document 'how' the control is met." },
+                            { text: "Email the AO that it's done.", correct: false, feedback: "Emails are not official RMF artifacts." },
+                            { text: "Wait for the audit.", correct: false, feedback: "Proactive documentation is required." }
+                        ]
+                    }
                 ]
             },
             {
@@ -215,11 +290,23 @@
                 name: "Assess",
                 short: "Ass",
                 icon: "🔍",
-                scenario: "Implementation is complete. Now for the Assessment. Who should perform the assessment, and what is the output?",
-                options: [
-                    { text: "The System Administrator, producing a bug report.", correct: false, feedback: "The admin is too close to the system. You need independence." },
-                    { text: "An independent Control Assessor, producing a Security Assessment Report (SAR).", correct: true, feedback: "Correct! Independence is crucial to avoid conflict of interest. The SAR details the findings." },
-                    { text: "The CEO, producing a memo.", correct: false, feedback: "The CEO (unless acting as AO) does not perform the technical assessment." }
+                questions: [
+                    {
+                        scenario: "Who should perform the security assessment to ensure validity?",
+                        options: [
+                            { text: "The System Administrator.", correct: false, feedback: "Conflict of interest." },
+                            { text: "An independent Control Assessor.", correct: true, feedback: "Correct! Independence prevents bias." },
+                            { text: "The Vendor who sold the software.", correct: false, feedback: "Conflict of interest." }
+                        ]
+                    },
+                    {
+                        scenario: "How does an assessor verify a firewall configuration?",
+                        options: [
+                            { text: "Ask if it works.", correct: false, feedback: "Hearsay is not evidence." },
+                            { text: "Examine the rules, Interview the admin, and Test the traffic.", correct: true, feedback: "Correct! Examine, Interview, and Test are the standard assessment methods." },
+                            { text: "Guess.", correct: false, feedback: "Never guess in compliance." }
+                        ]
+                    }
                 ]
             },
             {
@@ -227,11 +314,23 @@
                 name: "Authorize",
                 short: "Auth",
                 icon: "✍️",
-                scenario: "The SAR shows some low-level risks, but they are manageable. It's time for Authorization. Who makes the final decision?",
-                options: [
-                    { text: "The ISSO (Information System Security Officer).", correct: false, feedback: "The ISSO advises, but does not accept the risk." },
-                    { text: "The Authorizing Official (AO) signs the ATO (Authority to Operate).", correct: true, feedback: "Correct! The AO is the only person liable for accepting the residual risk of operating the system." },
-                    { text: "The System Owner.", correct: false, feedback: "The System Owner owns the budget/system, but the AO owns the risk acceptance." }
+                questions: [
+                    {
+                        scenario: "The assessment found a high risk, but the mission is critical and cannot stop. What can the AO do?",
+                        options: [
+                            { text: "Deny Authorization immediately.", correct: false, feedback: "Not if the mission is critical." },
+                            { text: "Issue an ATO with conditions and a POA&M (Plan of Action).", correct: true, feedback: "Correct! You can operate with known risks if they are tracked and accepted." },
+                            { text: "Ignore the risk and sign the ATO.", correct: false, feedback: "This is negligence." }
+                        ]
+                    },
+                    {
+                        scenario: "Who accepts the final risk of operating the system?",
+                        options: [
+                            { text: "The Authorizing Official (AO).", correct: true, feedback: "Correct! The AO is legally liable." },
+                            { text: "The ISSO.", correct: false, feedback: "The ISSO advises, they do not accept risk." },
+                            { text: "The Sysadmin.", correct: false, feedback: "No." }
+                        ]
+                    }
                 ]
             },
             {
@@ -239,11 +338,23 @@
                 name: "Monitor",
                 short: "Mon",
                 icon: "📡",
-                scenario: "Congratulations, you have an ATO! Are you done? What happens in the Monitor step?",
-                options: [
-                    { text: "Yes, we are done until the ATO expires in 3 years.", correct: false, feedback: "RMF is continuous. 'Set and forget' is the old way." },
-                    { text: "Continuously monitor controls, assess changes, and report security posture.", correct: true, feedback: "Correct! You must practice Continuous Monitoring (ConMon) to track changes and new threats." },
-                    { text: "Only check logs if a hack occurs.", correct: false, feedback: "Monitoring must be proactive, not just reactive." }
+                questions: [
+                    {
+                        scenario: "A new 'Zero Day' vulnerability is discovered in your software. What is the RMF Monitor response?",
+                        options: [
+                            { text: "Wait for the next 3-year cycle.", correct: false, feedback: "Too slow. You will be hacked." },
+                            { text: "Remediate immediately, assess impact, and update the risk dashboard.", correct: true, feedback: "Correct! Continuous monitoring reacts to new threats instantly." },
+                            { text: "Shut down the agency.", correct: false, feedback: "Overreaction." }
+                        ]
+                    },
+                    {
+                        scenario: "The system is being replaced and turned off. What is the final step?",
+                        options: [
+                            { text: "Throw the servers in the trash.", correct: false, feedback: "Data leakage risk!" },
+                            { text: "Decommission the system and Sanitize the media.", correct: true, feedback: "Correct! Media sanitization ensures no data remains." },
+                            { text: "Just turn off the power.", correct: false, feedback: "Data remains on the hard drives." }
+                        ]
+                    }
                 ]
             }
         ];
@@ -252,14 +363,33 @@
         const game = {
             currentLevel: 0,
             score: 0,
-            maxScore: rmfData.length * 100,
+            maxScore: 700,
+            activeSession: [], // Stores the specific questions for this run
+            solvedStates: [], // Tracks if a level has been scored already
 
             init: function() {
-                this.renderSteps();
+                // Initial render or setup if needed
             },
 
             start: function() {
                 document.getElementById('intro-screen').classList.add('hidden');
+                document.getElementById('stepper-wrapper').classList.remove('hidden');
+                document.getElementById('nav-footer').classList.remove('hidden');
+                
+                // Randomize Questions
+                this.activeSession = rmfPool.map(step => {
+                    const randomIndex = Math.floor(Math.random() * step.questions.length);
+                    return {
+                        ...step,
+                        question: step.questions[randomIndex] // Select one random question
+                    };
+                });
+                
+                this.solvedStates = new Array(7).fill(false);
+                this.score = 0;
+                document.getElementById('score-display').innerText = "0";
+                
+                this.renderSteps();
                 this.loadLevel(0);
             },
 
@@ -267,16 +397,15 @@
                 const container = document.getElementById('steps-container');
                 container.innerHTML = '';
                 
-                rmfData.forEach((step, index) => {
+                this.activeSession.forEach((step, index) => {
                     const div = document.createElement('div');
-                    // Logic for visual styles handled in updateSteps
                     div.id = `step-indicator-${index}`;
-                    div.className = `w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center border-2 font-bold text-xs md:text-sm transition-all duration-300 step-pending z-10 bg-slate-900`;
+                    div.className = `relative w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center border-2 font-bold text-xs md:text-sm transition-all duration-300 step-pending z-10 bg-slate-900`;
                     div.innerHTML = `<span class="hidden md:inline">${step.icon}</span><span class="md:hidden">${step.stepId}</span>`;
                     
-                    // Tooltip/Label
+                    // Centered Label
                     const label = document.createElement('div');
-                    label.className = "absolute mt-14 text-[10px] md:text-xs text-slate-400 font-medium uppercase tracking-wider w-20 text-center -ml-4 md:-ml-4";
+                    label.className = "step-label-centered text-[10px] md:text-xs text-slate-400 font-medium uppercase tracking-wider w-20 text-center";
                     label.innerText = step.short;
                     div.appendChild(label);
 
@@ -285,33 +414,42 @@
             },
 
             updateSteps: function() {
-                rmfData.forEach((step, index) => {
+                this.activeSession.forEach((step, index) => {
                     const el = document.getElementById(`step-indicator-${index}`);
                     // Reset
                     el.classList.remove('step-pending', 'step-active', 'step-completed');
-                    
+                    el.style.borderColor = ''; // clear inline styles from prev logic
+                    el.style.backgroundColor = '';
+                    el.style.boxShadow = '';
+
                     if (index < this.currentLevel) {
                         el.classList.add('step-completed');
-                        el.style.borderColor = '#10b981'; // Emerald
                     } else if (index === this.currentLevel) {
                         el.classList.add('step-active');
-                        el.style.borderColor = '#0ea5e9'; // Sky
                     } else {
                         el.classList.add('step-pending');
-                        el.style.borderColor = '#334155'; // Slate 700
                     }
                 });
+                
+                // Update Back Button Visibility
+                const backBtn = document.getElementById('back-btn');
+                if (this.currentLevel === 0) {
+                    backBtn.classList.add('opacity-0', 'pointer-events-none');
+                } else {
+                    backBtn.classList.remove('opacity-0', 'pointer-events-none');
+                }
             },
 
             loadLevel: function(index) {
                 this.currentLevel = index;
                 this.updateSteps();
                 
-                const levelData = rmfData[index];
+                const levelData = this.activeSession[index];
+                const q = levelData.question;
                 const contentDiv = document.getElementById('level-content');
                 
-                // Clear previous content
-                contentDiv.innerHTML = '';
+                // Check if already solved to visually indicate
+                const isSolved = this.solvedStates[index];
 
                 // Build HTML
                 const html = `
@@ -319,17 +457,22 @@
                         <div class="flex items-center mb-4">
                             <span class="bg-sky-500/20 text-sky-400 text-xs font-bold px-3 py-1 rounded-full border border-sky-500/30 uppercase tracking-wider mr-3">Step ${levelData.stepId}</span>
                             <h2 class="text-2xl font-bold text-white">${levelData.name}</h2>
+                            ${isSolved ? '<span class="ml-auto text-emerald-400 text-sm font-bold px-2 py-1 bg-emerald-500/10 rounded border border-emerald-500/20">COMPLETED</span>' : ''}
                         </div>
                         <div class="bg-slate-800/50 p-5 rounded-xl border border-slate-700/50 shadow-inner">
-                            <p class="text-slate-200 text-lg leading-relaxed">${levelData.scenario}</p>
+                            <p class="text-slate-200 text-lg leading-relaxed">${q.scenario}</p>
                         </div>
                     </div>
 
-                    <div class="grid gap-3">
-                        ${levelData.options.map((opt, i) => `
+                    <div class="grid gap-3 mt-auto">
+                        ${q.options.map((opt, i) => `
                             <button onclick="game.handleChoice(${i})" 
-                                class="option-btn w-full text-left p-4 rounded-xl border border-slate-600 bg-slate-800 hover:bg-slate-700 text-slate-200 flex items-center group">
-                                <div class="w-8 h-8 rounded-full bg-slate-700 text-slate-400 flex items-center justify-center mr-4 font-bold group-hover:bg-sky-500 group-hover:text-white transition-colors">
+                                ${isSolved ? 'disabled' : ''}
+                                class="option-btn w-full text-left p-4 rounded-xl border border-slate-600 bg-slate-800 
+                                ${isSolved ? 'opacity-50 cursor-not-allowed' : 'hover:bg-slate-700 hover:border-sky-400 cursor-pointer'} 
+                                text-slate-200 flex items-center group transition-all">
+                                <div class="w-8 h-8 rounded-full bg-slate-700 text-slate-400 flex items-center justify-center mr-4 font-bold 
+                                ${!isSolved ? 'group-hover:bg-sky-500 group-hover:text-white' : ''} transition-colors">
                                     ${String.fromCharCode(65 + i)}
                                 </div>
                                 <span>${opt.text}</span>
@@ -347,8 +490,11 @@
             },
 
             handleChoice: function(optionIndex) {
-                const levelData = rmfData[this.currentLevel];
-                const choice = levelData.options[optionIndex];
+                // Prevent interacting with solved levels
+                if (this.solvedStates[this.currentLevel]) return;
+
+                const levelData = this.activeSession[this.currentLevel];
+                const choice = levelData.question.options[optionIndex];
                 
                 const modal = document.getElementById('feedback-modal');
                 const title = document.getElementById('feedback-title');
@@ -359,6 +505,9 @@
                 modal.classList.remove('hidden');
 
                 if (choice.correct) {
+                    // Mark as solved so they can't re-answer for points
+                    this.solvedStates[this.currentLevel] = true;
+                    
                     this.score += 100;
                     document.getElementById('score-display').innerText = this.score;
                     
@@ -366,9 +515,10 @@
                     title.innerText = "Correct Decision!";
                     title.className = "text-2xl font-bold mb-2 text-emerald-400";
                     
+                    nextBtn.innerText = this.currentLevel < 6 ? "Next Step" : "Finish Mission";
                     nextBtn.onclick = () => {
                         modal.classList.add('hidden');
-                        if (this.currentLevel < rmfData.length - 1) {
+                        if (this.currentLevel < 6) {
                             this.loadLevel(this.currentLevel + 1);
                         } else {
                             this.endGame();
@@ -382,18 +532,25 @@
                     title.innerText = "Risk Violation";
                     title.className = "text-2xl font-bold mb-2 text-rose-400";
                     
+                    nextBtn.innerText = "Try Again";
                     nextBtn.onclick = () => {
                         modal.classList.add('hidden');
-                        // Stay on same level
                     };
                 }
 
                 text.innerText = choice.feedback;
             },
 
+            prevLevel: function() {
+                if (this.currentLevel > 0) {
+                    this.loadLevel(this.currentLevel - 1);
+                }
+            },
+
             endGame: function() {
                 document.getElementById('level-content').classList.add('hidden');
-                document.getElementById('steps-container').parentElement.classList.add('hidden');
+                document.getElementById('stepper-wrapper').classList.add('hidden');
+                document.getElementById('nav-footer').classList.add('hidden');
                 document.getElementById('victory-screen').classList.remove('hidden');
                 document.getElementById('final-score').innerText = this.score;
             }
